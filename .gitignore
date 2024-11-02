@@ -136,4 +136,4 @@ dmypy.json
 !requirements/*
 
 # Generated JSON files
-apple_music*.json
+*.json
