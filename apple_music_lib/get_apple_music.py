@@ -28,7 +28,7 @@ def get_bearer_auth_token(html: str) -> str:
 def fetch_songs_via_api_call(
     original_url: str, bearer_auth_token: str
 ) -> List[Dict[str, str]]:
-    logger = create_logger(name=__name__, level=logging.DEBUG)
+    logger = create_logger(name=__name__, level=logging.DEBUG, log_path="./logs")
 
     apple_music_songs: List[Dict[str, str]] = []
 
