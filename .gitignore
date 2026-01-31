@@ -133,7 +133,6 @@ dmypy.json
 
 # Generated .txt files
 *.txt
-!requirements/*
 
 # Generated JSON files
 *.json
