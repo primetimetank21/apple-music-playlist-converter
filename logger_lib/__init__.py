@@ -19,10 +19,9 @@ def create_logger(
     filename: Path = Path(log_path, f"{name}.log")
 
     logging.basicConfig(
-        # format="%(asctime)s\t%(levelname)-8s\t%(message)s", level=logging.DEBUG
         format="%(asctime)s\t%(levelname)-8s %(filename)s:%(lineno)d\t%(message)s",
         level=level,
-        filename=filename,
+        handlers=[logging.FileHandler(filename=filename), logging.StreamHandler()],
     )
 
     return logger

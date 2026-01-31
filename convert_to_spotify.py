@@ -4,11 +4,13 @@ from time import sleep
 from typing import Any, Dict, List, Union
 import logging
 
-# from urllib.parse import parse_qs, urlparse
 from logger_lib import create_logger
 import spotipy  # type: ignore
 from spotipy.oauth2 import SpotifyOAuth  # type: ignore
-from apple_music_lib.get_apple_music import get_apple_music_songs
+
+# from apple_music_lib.get_apple_music import get_apple_music_songs
+from apple_music_lib import get_apple_music_songs
+
 
 # TODO: Add Pydantic for data validation
 # TODO: Add way to save songs that failed to be added
@@ -32,8 +34,8 @@ def create_spotify_playlist(
     description: str = "Apple Music playlist converted to Spotify playlist! Automated with Python :)",
 ) -> None:
     # Create logger
-    # logger = create_logger(name=__name__, level=logging.INFO, log_path="./logs")
-    logger = create_logger(name=__name__, level=logging.DEBUG, log_path="./logs")
+    logger = create_logger(name=__name__, level=logging.INFO, log_path="./logs")
+    # logger = create_logger(name=__name__, level=logging.DEBUG, log_path="./logs")
 
     # Authenticate user
     sp = spotipy.Spotify(
@@ -122,6 +124,13 @@ def create_spotify_playlist(
             )
             logger.info(f"Added '{song_name}' by '{song_artist}' to '{playlist_name}'")
             logger.debug(f"{add_song_to_playlist_response=}\n")
+        except IndexError:
+            try:
+                logger.error(
+                    f"Failed to add '{song_name}' by '{song_artist}' to '{playlist_name}'"
+                )
+            except Exception:
+                logger.error(f"Failed to add a song to '{playlist_name}'")
         except Exception as e:
             logger.exception(e)
         finally:
@@ -162,16 +171,14 @@ async def async_main() -> None:
     #   - playlist url
     #   - playlist name
 
-    url: str = (
-        "https://music.apple.com/us/playlist/christian-jawns/pl.u-r2yB14xCR4EelLx"
-    )
+    url: str = "https://music.apple.com/us/playlist/gymbro/pl.u-55D6X8qU63EXGbj"
     apple_song_list = await get_apple_music_songs(url=url)
     # apple_song_list: List[Dict[str, str]] = read_json("apple_music_songs.json")
     spotify_creds: Dict[str, str] = get_creds()
     create_spotify_playlist(
         song_list=apple_song_list,
         spotify_creds=spotify_creds,
-        playlist_name="Christian Jawns",
+        playlist_name="GymBro",
     )
 
 

@@ -1,5 +1,4 @@
 .DEFAULT_GOAL := all
-# .SILENT: install
 
 # Variables
 DEV = 1
@@ -37,13 +36,13 @@ endif
 .PHONY: install
 install: $(REQUIREMENTS)
 	@ chmod +x ./.github/add_github_hooks.sh && ./.github/add_github_hooks.sh
-	@ echo "Installing dependencies... [START]" && \
+#	@ echo "Installing dependencies... [START]" && \
 	$(PIP) install --upgrade pip && \
 	$(PIP) install --upgrade wheel && \
 	$(PIP) install -r $(REQUIREMENTS) && \
 	$(PLAYWRIGHT) install && \
 	echo "Installing dependencies... [FINISHED]"
-#	@ echo "Installing dependencies... [START]" && \
+	@ echo "Installing dependencies... [START]" && \
 	$(PIP) install --upgrade pip      $(MUTE_OUTPUT) && \
 	$(PIP) install --upgrade wheel    $(MUTE_OUTPUT) && \
 	$(PIP) install -r $(REQUIREMENTS) $(MUTE_OUTPUT) && \
@@ -95,6 +94,10 @@ jupyter: venv
 test: venv
 	@ echo "TODO: Implement tests"
 #	@ $(PYTEST) -vv --cov-report term-missing --cov=. testing/
+
+.PHONY: run
+run: venv
+	@ $(PYTHON) convert_to_spotify.py
 
 # Clean up and remove cache files
 .PHONY: clean
