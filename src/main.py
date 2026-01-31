@@ -15,6 +15,8 @@ from apple_music_lib import get_apple_music_songs
 # TODO: Add Pydantic for data validation
 # TODO: Add way to save songs that failed to be added
 
+type SpotifyUser = dict[str, str | Any] | Any
+
 
 def create_spotify_playlist(
     song_list: list[dict[str, str]],
@@ -48,8 +50,7 @@ def create_spotify_playlist(
     )
 
     # Get current user info
-    # current_user: dict[str, Union[str, Any]] = sp.current_user()
-    current_user: Any = sp.current_user()
+    current_user: SpotifyUser = sp.current_user()
 
     # Check if playlist already exists
     WAIT_TIME: int = 5
