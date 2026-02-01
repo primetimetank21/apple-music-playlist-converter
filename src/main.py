@@ -4,6 +4,7 @@ from typing import Any, Optional
 from logger_lib import create_logger
 from spotipy.oauth2 import SpotifyOAuth
 from config import settings
+from pathlib import Path
 
 import asyncio
 import json
@@ -18,6 +19,7 @@ type SpotifyUser = dict[str, str | Any] | Any
 
 
 def create_spotify_playlist(
+    *,
     song_list: list[dict[str, str]],
     spotify_creds: dict[str, str],
     playlist_name: str,
@@ -26,7 +28,7 @@ def create_spotify_playlist(
     description: str = "Apple Music playlist converted to Spotify playlist! Automated with Python :)",
 ) -> None:
     # Create logger
-    logger = create_logger(name=__name__, level=logging.INFO)
+    logger = create_logger(name=Path(__file__).name, level=logging.INFO)
     if not scope:
         scope = settings.SCOPE
 

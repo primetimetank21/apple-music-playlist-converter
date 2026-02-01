@@ -1,12 +1,9 @@
-import requests
-import json
-import logging
 from logger_lib import create_logger
-
 from urllib.parse import urlparse, parse_qs
 from playwright.async_api import async_playwright
 from time import sleep
-# from pathlib import Path
+import requests
+import json
 
 
 def get_bearer_auth_token(html: str) -> str:
@@ -27,7 +24,7 @@ def get_bearer_auth_token(html: str) -> str:
 def fetch_songs_via_api_call(
     original_url: str, bearer_auth_token: str
 ) -> list[dict[str, str]]:
-    logger = create_logger(name=__name__, level=logging.INFO)
+    logger = create_logger(name=fetch_songs_via_api_call.__name__)
 
     logger.info(f"Fetching songs from {original_url}")
 
