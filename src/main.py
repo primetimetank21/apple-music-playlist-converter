@@ -1,15 +1,16 @@
-from apple_music_lib import get_apple_music_songs
-from time import sleep
-from typing import Any, Optional
-from logger_lib import create_logger
-from spotipy.oauth2 import SpotifyOAuth
-from config import settings
-from models import SpotifyCredentials
 import asyncio
 import json
 import logging
-import spotipy
+from time import sleep
+from typing import Any, Final, Optional
 
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
+
+from apple_music_lib import get_apple_music_songs
+from config import settings
+from logger_lib import create_logger
+from models import SpotifyCredentials
 
 # TODO: Add Pydantic for data validation
 # TODO: Add way to save songs that failed to be added
@@ -45,7 +46,7 @@ def create_spotify_playlist(
     current_user: SpotifyUser = sp.current_user()
 
     # Check if playlist already exists
-    WAIT_TIME: int = 5
+    WAIT_TIME: Final[int] = 5
     failed_attempts: int = 0
     FAILED_LIMIT: int = 5
     offset: int = 0

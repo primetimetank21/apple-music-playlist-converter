@@ -17,6 +17,9 @@ dependencies = [
     "spotipy>=2.25.2",
 ]
 
+[tool.ruff.lint]
+extend-select = ["I"]
+
 [dependency-groups]
 dev = [
     "ipython>=9.9.0",

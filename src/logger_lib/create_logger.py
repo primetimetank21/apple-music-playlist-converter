@@ -1,5 +1,5 @@
-from typing import Final, Optional
 import logging
+from typing import Final, Optional
 
 LEVEL_COLOURS: Final[list[tuple[int, str]]] = [
     (logging.DEBUG, "\x1b[40;1m"),

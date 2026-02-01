@@ -1,9 +1,11 @@
-from logger_lib import create_logger
-from urllib.parse import urlparse, parse_qs
-from playwright.async_api import async_playwright
-from time import sleep
-import requests
 import json
+from time import sleep
+from urllib.parse import parse_qs, urlparse
+
+import requests
+from playwright.async_api import async_playwright
+
+from logger_lib import create_logger
 
 
 def get_bearer_auth_token(html: str) -> str:
