@@ -1,12 +1,12 @@
+from time import sleep
+from typing import Any
 import asyncio
 import json
-from time import sleep
-from typing import Any, Dict, List, Union
 import logging
 
 from logger_lib import create_logger
-import spotipy  # type: ignore
-from spotipy.oauth2 import SpotifyOAuth  # type: ignore
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
 
 # from apple_music_lib.get_apple_music import get_apple_music_songs
 from apple_music_lib import get_apple_music_songs
@@ -15,12 +15,14 @@ from apple_music_lib import get_apple_music_songs
 # TODO: Add Pydantic for data validation
 # TODO: Add way to save songs that failed to be added
 
+type SpotifyUser = dict[str, str | Any] | Any
+
 
 def create_spotify_playlist(
-    song_list: List[Dict[str, str]],
-    spotify_creds: Dict[str, str],
+    song_list: list[dict[str, str]],
+    spotify_creds: dict[str, str],
     playlist_name: str,
-    scope: Union[str, List[str]] = [
+    scope: str | list[str] = [
         "user-library-modify",
         "playlist-modify-public",
         "playlist-modify-private",
@@ -34,7 +36,7 @@ def create_spotify_playlist(
     description: str = "Apple Music playlist converted to Spotify playlist! Automated with Python :)",
 ) -> None:
     # Create logger
-    logger = create_logger(name=__name__, level=logging.INFO, log_path="./logs")
+    logger = create_logger(name=__name__, level=logging.INFO)
     # logger = create_logger(name=__name__, level=logging.DEBUG, log_path="./logs")
 
     # Authenticate user
@@ -48,7 +50,7 @@ def create_spotify_playlist(
     )
 
     # Get current user info
-    current_user: Dict[str, Union[str, Any]] = sp.current_user()
+    current_user: SpotifyUser = sp.current_user()
 
     # Check if playlist already exists
     WAIT_TIME: int = 5
@@ -59,7 +61,7 @@ def create_spotify_playlist(
 
     while all([playlist_id == "", failed_attempts < FAILED_LIMIT]):
         try:
-            user_playlists_response = sp.user_playlists(
+            user_playlists_response: Any = sp.user_playlists(
                 user=current_user["id"], limit=50, offset=offset
             )
             logger.debug(f"{user_playlists_response=}\n{failed_attempts=}\n")
@@ -93,7 +95,7 @@ def create_spotify_playlist(
     # Create playlist if it doesn't exist
     if not playlist_id:
         logger.info(f"Playlist '{playlist_name}' not found. Creating...")
-        create_user_playlist_response = sp.user_playlist_create(
+        create_user_playlist_response: Any = sp.user_playlist_create(
             user=current_user["id"],
             name=playlist_name,
             public=public,
@@ -112,7 +114,7 @@ def create_spotify_playlist(
                 song_data["attributes"]["artistName"],  # type: ignore
             )
 
-            song_search_response = sp.search(
+            song_search_response: Any = sp.search(
                 q=f"track:'{song_name}' artist:'{song_artist}'", type="track", limit=1
             )
             new_song_uri = song_search_response["tracks"]["items"][0]["id"]
@@ -154,13 +156,13 @@ def create_spotify_playlist(
     #     json.dump(song_search_response, f, indent=4)
 
 
-def get_creds() -> Dict[str, str]:
+def get_creds() -> dict[str, str]:
     with open("spotify_creds.json", "r") as f:
         creds = json.load(f)
     return creds
 
 
-def read_json(filename: str) -> List[Dict[str, str]]:
+def read_json(filename: str) -> list[dict[str, str]]:
     with open(filename, "r") as f:
         apple_song_list = json.load(f)
     return apple_song_list
@@ -173,8 +175,8 @@ async def async_main() -> None:
 
     url: str = "https://music.apple.com/us/playlist/gymbro/pl.u-55D6X8qU63EXGbj"
     apple_song_list = await get_apple_music_songs(url=url)
-    # apple_song_list: List[Dict[str, str]] = read_json("apple_music_songs.json")
-    spotify_creds: Dict[str, str] = get_creds()
+    # apple_song_list: list[dict[str, str]] = read_json("apple_music_songs.json")
+    spotify_creds: dict[str, str] = get_creds()
     create_spotify_playlist(
         song_list=apple_song_list,
         spotify_creds=spotify_creds,
@@ -185,6 +187,7 @@ async def async_main() -> None:
 def main() -> None:
     if __name__ == "__main__":
         asyncio.run(async_main())
+        # print("Hello world!")
 
 
 main()
