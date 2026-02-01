@@ -4,8 +4,6 @@ from typing import Any, Optional
 from logger_lib import create_logger
 from spotipy.oauth2 import SpotifyOAuth
 from config import settings
-from pathlib import Path
-
 import asyncio
 import json
 import logging
@@ -28,7 +26,7 @@ def create_spotify_playlist(
     description: str = "Apple Music playlist converted to Spotify playlist! Automated with Python :)",
 ) -> None:
     # Create logger
-    logger = create_logger(name=Path(__file__).name, level=logging.INFO)
+    logger = create_logger(name=create_spotify_playlist.__name__, level=logging.INFO)
     if not scope:
         scope = settings.SCOPE
 
@@ -149,12 +147,6 @@ def create_spotify_playlist(
     #     json.dump(song_search_response, f, indent=4)
 
 
-def get_creds() -> dict[str, str]:
-    with open("spotify_creds.json", "r") as f:
-        creds = json.load(f)
-    return creds
-
-
 def read_json(filename: str) -> list[dict[str, str]]:
     with open(filename, "r") as f:
         apple_song_list = json.load(f)
@@ -169,7 +161,11 @@ async def async_main() -> None:
     url: str = "https://music.apple.com/us/playlist/gymbro/pl.u-55D6X8qU63EXGbj"
     apple_song_list = await get_apple_music_songs(url=url)
     # apple_song_list: list[dict[str, str]] = read_json("apple_music_songs.json")
-    spotify_creds: dict[str, str] = get_creds()
+    spotify_creds: dict[str, str] = {
+        "client_id": settings.CLIENT_ID,
+        "client_secret": settings.CLIENT_SECRET,
+        "redirect_url": settings.REDIRECT_URI,
+    }
     create_spotify_playlist(
         song_list=apple_song_list,
         spotify_creds=spotify_creds,
