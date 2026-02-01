@@ -1,15 +1,14 @@
+from apple_music_lib import get_apple_music_songs
 from time import sleep
-from typing import Any
+from typing import Any, Optional
+from logger_lib import create_logger
+from spotipy.oauth2 import SpotifyOAuth
+from config import settings
+
 import asyncio
 import json
 import logging
-
-from logger_lib import create_logger
 import spotipy
-from spotipy.oauth2 import SpotifyOAuth
-
-# from apple_music_lib.get_apple_music import get_apple_music_songs
-from apple_music_lib import get_apple_music_songs
 
 
 # TODO: Add Pydantic for data validation
@@ -22,22 +21,14 @@ def create_spotify_playlist(
     song_list: list[dict[str, str]],
     spotify_creds: dict[str, str],
     playlist_name: str,
-    scope: str | list[str] = [
-        "user-library-modify",
-        "playlist-modify-public",
-        "playlist-modify-private",
-        "playlist-read-private",
-        "playlist-read-collaborative",
-        "user-library-modify",
-        "user-library-read",
-        "user-read-private",
-    ],
+    scope: Optional[str | list[str]] = None,
     public: bool = False,
     description: str = "Apple Music playlist converted to Spotify playlist! Automated with Python :)",
 ) -> None:
     # Create logger
     logger = create_logger(name=__name__, level=logging.INFO)
-    # logger = create_logger(name=__name__, level=logging.DEBUG, log_path="./logs")
+    if not scope:
+        scope = settings.SCOPE
 
     # Authenticate user
     sp = spotipy.Spotify(
@@ -187,7 +178,6 @@ async def async_main() -> None:
 def main() -> None:
     if __name__ == "__main__":
         asyncio.run(async_main())
-        # print("Hello world!")
 
 
 main()
