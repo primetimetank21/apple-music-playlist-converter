@@ -1,9 +1,15 @@
 import json
-from time import sleep
+from typing import Final
 from urllib.parse import parse_qs, urlparse
 
-import requests
+import httpx
 from playwright.async_api import Browser, Page, async_playwright
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 from logger_lib import create_logger
 
@@ -23,15 +29,16 @@ def get_bearer_auth_token(html: str) -> str:
     return bearer_auth_token
 
 
-def fetch_songs_via_api_call(
+async def fetch_songs_via_api_call(
     original_url: str, bearer_auth_token: str
 ) -> list[dict[str, str]]:
     logger = create_logger(name=fetch_songs_via_api_call.__name__)
     logger.debug("Fetching songs via API call")
-
     logger.info(f"Fetching songs from {original_url}")
 
     apple_music_songs: list[dict[str, str]] = []
+    playlist_identifier: str = original_url.split("/")[-1]
+    BASE_API_URL: Final[str] = "https://amp-api.music.apple.com"
 
     cookies = {"geo": "US"}
     headers = {
@@ -48,80 +55,70 @@ def fetch_songs_via_api_call(
         "Priority": "u=4",
     }
 
-    FAIL_LIMIT: int = 5
-    WAIT_TIME: int = 5
-    failures: int = 0
-    offset: int = 0
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_exponential(multiplier=1, min=5, max=60),
+        retry=retry_if_exception_type((httpx.HTTPStatusError, httpx.RequestError)),
+        reraise=True,
+    )
+    async def fetch_page(*, client: httpx.AsyncClient, url: str, offset: int):
+        """Fetch a single page of songs with automatic retry logic."""
+        params = {
+            "l": "en-US",
+            "offset": offset,
+            "art[url]": "f",
+            "format[resources]": "map",
+            "platform": "web",
+        }
+        response = await client.get(url, params=params)
+        response.raise_for_status()
+        return response.json()
 
-    playlist_identifier: str = original_url.split("/")[-1]
-    BASE_API_URL: str = "https://amp-api.music.apple.com"
-    next_url: str = f"/v1/catalog/us/playlists/{playlist_identifier}/tracks"
+    async with httpx.AsyncClient(
+        cookies=cookies,
+        headers=headers,
+        timeout=30.0,
+    ) as client:
+        next_url: str = f"/v1/catalog/us/playlists/{playlist_identifier}/tracks"
+        offset: int = 0
 
-    while failures < FAIL_LIMIT:
-        try:
-            params: list[tuple[str, str | int]] = [
-                ("l", "en-US"),
-                ("offset", offset),
-                ("art[url]", "f"),
-                ("format[resources]", "map"),
-                ("l", "en-US"),
-                ("platform", "web"),
-            ]
+        while True:
+            try:
+                url = BASE_API_URL + next_url
+                response_json = await fetch_page(client=client, url=url, offset=offset)
+                logger.debug(f"{response_json.keys()=}")
 
-            typed_params: dict[str, str | int] = dict(params)
+                apple_music_songs += list(response_json["resources"]["songs"].values())
+                with open("apple_music_songs.json", "w", encoding="utf-8") as f:
+                    json.dump(apple_music_songs, f, indent=4)
 
-            url: str = BASE_API_URL + next_url
-
-            response = requests.get(
-                url,
-                params=typed_params,
-                cookies=cookies,
-                headers=headers,
-            )
-
-            response_json = response.json()
-
-            apple_music_songs += list(response_json["resources"]["songs"].values())
-            with open("apple_music_songs.json", "w", encoding="utf-8") as f:
-                json.dump(apple_music_songs, f, indent=4)
-
-            logger.info(
-                f"Updated apple_music_songs (current length: {len(apple_music_songs)})"
-            )
-
-            # Get next url to use for API
-            next_url = response_json["next"]
-
-            # Parse the URL
-            parsed_url = urlparse(next_url)
-
-            # Get the query parameters
-            query_params = parse_qs(parsed_url.query)
-
-            offset = int(query_params["offset"][0])
-            logger.debug(f"\toffset: {offset}")
-
-            failures = 0
-
-        except KeyError as key_error:
-            if "resources" in str(key_error):
                 logger.info(
-                    f"Done updating apple_music_songs (final length: {len(apple_music_songs)})"
+                    f"Updated apple_music_songs (current length: {len(apple_music_songs)})"
                 )
-                break
 
-            failures += 1
-            if failures < 2:
-                offset += 100
-            continue
+                # Parse next URL for pagination
+                next_url = response_json.get("next", None)
+                if not next_url:
+                    logger.info(
+                        f"Done updating apple_music_songs (final length: {len(apple_music_songs)})"
+                    )
+                    break
 
-        except Exception as e:
-            logger.error(e)
-            failures += 1
-            logger.warning(f"Got stuck: {failures}")
+                parsed_url = urlparse(next_url)
+                query_params = parse_qs(parsed_url.query)
+                offset = int(query_params["offset"][0])
+                logger.debug(f"Next offset: {offset}")
 
-        finally:
-            sleep(WAIT_TIME)
+            except KeyError as e:
+                if "resources" in str(e):
+                    logger.info(
+                        f"Done updating apple_music_songs (final length: {len(apple_music_songs)})"
+                    )
+                    break
+                raise
+            except Exception as e:
+                logger.exception(f"Error fetching songs: {e}")
+                raise
 
     return apple_music_songs
 
@@ -137,7 +134,7 @@ async def get_apple_music_songs(url: str) -> list[dict[str, str]]:
         html: str = await page.content()
         bearer_auth_token: str = get_bearer_auth_token(html)
 
-        apple_music_songs = fetch_songs_via_api_call(
+        apple_music_songs = await fetch_songs_via_api_call(
             original_url=url, bearer_auth_token=bearer_auth_token
         )
 
