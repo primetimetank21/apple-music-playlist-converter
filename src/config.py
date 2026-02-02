@@ -34,7 +34,15 @@ class Settings(BaseSettings):
             }
             level: str = v.upper()
             return level_map.get(level, logging.INFO)
-        return v
+        if isinstance(v, int):
+            level_map_int: dict[int, int] = {
+                logging.DEBUG: logging.DEBUG,
+                logging.INFO: logging.INFO,
+                logging.WARNING: logging.WARNING,
+                logging.ERROR: logging.ERROR,
+                logging.CRITICAL: logging.CRITICAL,
+            }
+            return level_map_int.get(v, logging.INFO)
 
 
 settings = Settings()
