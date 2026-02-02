@@ -1,9 +1,11 @@
-from logger_lib import create_logger
-from urllib.parse import urlparse, parse_qs
-from playwright.async_api import async_playwright
-from time import sleep
-import requests
 import json
+from time import sleep
+from urllib.parse import parse_qs, urlparse
+
+import requests
+from playwright.async_api import Browser, Page, async_playwright
+
+from logger_lib import create_logger
 
 
 def get_bearer_auth_token(html: str) -> str:
@@ -25,13 +27,13 @@ def fetch_songs_via_api_call(
     original_url: str, bearer_auth_token: str
 ) -> list[dict[str, str]]:
     logger = create_logger(name=fetch_songs_via_api_call.__name__)
+    logger.debug("Fetching songs via API call")
 
     logger.info(f"Fetching songs from {original_url}")
 
     apple_music_songs: list[dict[str, str]] = []
 
     cookies = {"geo": "US"}
-
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:131.0) Gecko/20100101 Firefox/131.0",
         "Accept": "*/*",
@@ -128,12 +130,12 @@ async def get_apple_music_songs(url: str) -> list[dict[str, str]]:
     apple_music_songs: list[dict[str, str]] = []
 
     async with async_playwright() as pr:
-        browser = await pr.firefox.launch(headless=True)
-        page = await browser.new_page()
+        browser: Browser = await pr.firefox.launch(headless=True)
+        page: Page = await browser.new_page()
         await page.goto(url)
 
-        html = await page.content()
-        bearer_auth_token = get_bearer_auth_token(html)
+        html: str = await page.content()
+        bearer_auth_token: str = get_bearer_auth_token(html)
 
         apple_music_songs = fetch_songs_via_api_call(
             original_url=url, bearer_auth_token=bearer_auth_token

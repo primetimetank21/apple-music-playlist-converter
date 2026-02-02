@@ -1,5 +1,8 @@
-from typing import Final, Optional
 import logging
+from pathlib import Path
+from typing import Final, Optional
+
+from config import settings
 
 LEVEL_COLOURS: Final[list[tuple[int, str]]] = [
     (logging.DEBUG, "\x1b[40;1m"),
@@ -54,18 +57,16 @@ def create_logger(
     name: str,
     handler: Optional[logging.Handler] = None,
     formatter: Optional[logging.Formatter] = None,
-    level: int = logging.INFO,
+    level: Optional[int] = None,
 ) -> logging.Logger:
     if not level:
-        level = logging.INFO
+        level = settings.LOG_LEVEL
 
     if not handler:
         handler = logging.StreamHandler()
 
     if not formatter:
-        if isinstance(
-            handler, logging.StreamHandler
-        ):  # and stream_supports_colour(handler.stream):
+        if isinstance(handler, logging.StreamHandler):
             formatter = _ColourFormatter(logger_name=name)
         else:
             dt_fmt = "%Y-%m-%d %H:%M:%S"
@@ -78,5 +79,27 @@ def create_logger(
     handler.setFormatter(formatter)
     logger.setLevel(level)
     logger.addHandler(handler)
+
+    # Create logs directory if it doesn't exist
+    logs_dir = Path(Path(__file__).resolve().parents[2], "logs")
+    logs_dir.mkdir(parents=True, exist_ok=True)
+
+    # Create file formatter
+    dt_fmt = "%Y-%m-%d %H:%M:%S"
+    file_formatter = logging.Formatter(
+        "[{asctime}] [{levelname:<8}] {name}: {message}", dt_fmt, style="{"
+    )
+
+    # Create log file paths
+    for file_name in (name, "default"):
+        # Create log file path
+        file_path = Path(logs_dir, f"{file_name}.log")
+        logger.debug(f"Adding log file path: {file_path.as_posix()}")
+
+        # Create file handler and add to logger
+        file_handler = logging.FileHandler(file_path)
+
+        file_handler.setFormatter(file_formatter)
+        logger.addHandler(file_handler)
 
     return logger
