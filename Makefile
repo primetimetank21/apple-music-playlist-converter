@@ -10,12 +10,12 @@ install:
 .PHONY: format
 format:
 	@echo "\nFormating code..."
-	uv run ruff format
+	uv run ruff format $(ARGS)
 
 .PHONY: lint
 lint:
 	@echo "\nLinting code..."
-	uv run ruff check $(ARGS)
+	uv run ruff check --fix $(ARGS)
 
 .PHONY: test
 test:
@@ -32,7 +32,7 @@ clean:
 
 .PHONY: run
 run:
-	uv run src/main.py
+	uv run src/main.py $(ARGS)
 
 .PHONY: all
 all: install lint format test

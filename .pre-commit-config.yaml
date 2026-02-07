@@ -3,7 +3,7 @@ repos:
     hooks:
       - id: ruff-lint-code
         name: Lint
-        entry: make lint ARGS="--fix"
+        entry: make lint
         language: system
         pass_filenames: false
 
