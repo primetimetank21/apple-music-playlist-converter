@@ -57,7 +57,7 @@ def create_logger(
     name: str,
     handler: Optional[logging.Handler] = None,
     formatter: Optional[logging.Formatter] = None,
-    level: Optional[int] = None,
+    level: Optional[int | str] = None,
 ) -> logging.Logger:
     if not level:
         level = settings.LOG_LEVEL
