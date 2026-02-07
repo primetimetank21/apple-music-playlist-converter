@@ -5,6 +5,7 @@ install:
 	@echo "\nInstalling dependencies..."
 	uv sync
 	uv run pre-commit install
+# 	uv run playwright install-deps
 	uv run playwright install
 
 .PHONY: format
