@@ -167,7 +167,7 @@ def create_spotify_playlist(
     playlist_name: str,
     scope: Optional[str | list[str]] = None,
     public: bool = False,
-    description: str = "Apple Music playlist converted to Spotify playlist! Automated with Python :)",
+    description: str,
 ) -> None:
     # Create logger
     logger = create_logger(name=create_spotify_playlist.__name__)
