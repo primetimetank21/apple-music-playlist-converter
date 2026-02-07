@@ -11,3 +11,9 @@ class CLIArgs(BaseModel):
     apple_playlist_url: str
     playlist_description: str
     spotify_playlist_name: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    expires_in: int

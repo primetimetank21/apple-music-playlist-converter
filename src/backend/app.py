@@ -4,19 +4,13 @@ from typing import Final
 import httpx
 from fastapi import FastAPI, Query
 from fastapi.responses import RedirectResponse
-from pydantic import BaseModel
 
 from ..config import settings
+from ..models import TokenResponse
 
 app = FastAPI()
 
 TOKEN_URL: Final[str] = "https://accounts.spotify.com/api/token"
-
-
-class TokenResponse(BaseModel):
-    access_token: str
-    refresh_token: str
-    expires_in: int
 
 
 @app.get("/login")
