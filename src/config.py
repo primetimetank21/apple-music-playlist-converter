@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     CLIENT_ID: str = Field(default="", alias="CLIENT_ID")
     CLIENT_SECRET: str = Field(default="", alias="CLIENT_SECRET")
     REDIRECT_URI: str = Field(default="", alias="REDIRECT_URL")
-    LOG_LEVEL: int | str = Field(default=logging.INFO, alias="LOG_LEVEL")
+    LOG_LEVEL: int = Field(default=logging.INFO, alias="LOG_LEVEL")
     SCOPE: str | list[str] = Field(default="", alias="SCOPE")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     @classmethod
     def validate_log_level(cls, v: str | int) -> int:
         if isinstance(v, str):
-            level_map: dict[str, int] = {
+            level_map_str: dict[str, int] = {
                 "DEBUG": logging.DEBUG,
                 "INFO": logging.INFO,
                 "WARNING": logging.WARNING,
@@ -33,7 +33,7 @@ class Settings(BaseSettings):
                 "CRITICAL": logging.CRITICAL,
             }
             level: str = v.upper()
-            return level_map.get(level, logging.INFO)
+            return level_map_str.get(level, logging.INFO)
         if isinstance(v, int):
             level_map_int: dict[int, int] = {
                 logging.DEBUG: logging.DEBUG,
