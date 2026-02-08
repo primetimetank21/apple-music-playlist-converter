@@ -11,21 +11,32 @@ This tool automates the process of converting Apple Music playlists to Spotify p
 ```
 apple-music-playlist-converter/
 ├── src/
-│   ├── main.py                  # Entry point of the application
-│   ├── config.py                # Configuration management (environment variables)
-│   ├── models.py                # Data models and type definitions
-│   ├── apple_music_lib/         # Apple Music integration module
-│   │   └── get_apple_music.py   # Fetches songs from Apple Music playlists
-│   ├── helpers/                 # Utility functions
-│   │   ├── cli_input.py         # Command-line argument parser
-│   │   └── helper_functions.py  # Shared utility functions
-│   └── logger_lib/              # Logging configuration
-│       └── create_logger.py     # Logger setup
-├── logs/                        # Application log files
-├── Makefile                     # Build and development tasks
-├── pyproject.toml               # Project metadata and dependencies
-├── README.md                    # This file
-└── apple_music_songs.json       # Sample/cached Apple Music data
+│   ├── backend/                      # FastAPI backend server
+│   │   ├── app.py                    # FastAPI application and endpoints
+│   │   ├── run_cli.py                # CLI entry point
+│   │   ├── apple_music_lib/          # Apple Music integration module
+│   │   │   └── get_apple_music.py    # Fetches songs from Apple Music playlists
+│   │   ├── core/                     # Core business logic
+│   │   │   ├── config.py             # Configuration management
+│   │   │   └── models.py             # Data models and type definitions
+│   │   ├── helpers/                  # Utility functions
+│   │   │   ├── cli_input.py          # Command-line argument parser
+│   │   │   └── helper_functions.py   # Shared utility functions
+│   │   └── logger_lib/               # Logging configuration
+│   │       └── create_logger.py      # Logger setup
+│   │
+│   └── frontend/                     # Reflex web frontend
+│       ├── frontend/
+│       │   ├── frontend.py           # Main Reflex app
+│       │   ├── state.py              # State management
+│       │   ├── components.py         # UI components
+│       ├── rxconfig.py               # Reflex configuration
+│       ├── assets/                   # Static assets
+│       └── README.md                 # Frontend documentation
+│
+├── Makefile                         # Build and development tasks
+├── pyproject.toml                   # Project metadata and dependencies
+├── README.md                        # This file
 ```
 
 ## Setup
@@ -57,35 +68,59 @@ apple-music-playlist-converter/
    ```env
    CLIENT_ID=your_spotify_client_id
    CLIENT_SECRET=your_spotify_client_secret
-   REDIRECT_URI=http://localhost:8888/callback
+   REDIRECT_URI=http://localhost:8000/callback
    LOG_LEVEL=INFO
-   SCOPE=playlist-modify-public,playlist-modify-private
+   SCOPE=playlist-modify-public,playlist-modify-private,user-library-read
    ```
    
    To get your Spotify credentials:
    - Visit [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
    - Create a new application
    - Copy your `Client ID` and `Client Secret`
-   - Set your Redirect URI to match the one in your `.env` file
+   - Set your Redirect URI to `http://localhost:8000/callback`
 
 ## Running the Application
 
-Use the following command to convert an Apple Music playlist:
+The application consists of two parts: a backend server (FastAPI) and a frontend web interface (Reflex).
+
+### Option 1: Web Interface (Recommended)
+
+**Start the backend:**
+```bash
+make run-backend
+```
+The backend will run at `http://localhost:8000`
+
+**In another terminal, start the frontend:**
+```bash
+make run-frontend
+```
+The frontend will run at `http://localhost:3000`
+
+Then open your browser to `http://localhost:3000` and use the web interface to:
+1. Login with Spotify via OAuth 2.0
+2. Enter your Apple Music playlist URL
+3. Customize the Spotify playlist name and description
+4. Create the playlist
+
+### Option 2: Command Line Interface
+
+Use the CLI to convert a playlist:
 
 ```bash
-make run ARGS="--apple-playlist-url <URL> --spotify-playlist-name <NAME> [--playlist-description <DESCRIPTION>]"
+make run-cli ARGS="--apple-playlist-url <URL> --spotify-playlist-name <NAME> [--playlist-description <DESCRIPTION>]"
 ```
 
-### Arguments
+#### Arguments
 
 - `--apple-playlist-url` (required): The URL of the Apple Music playlist to convert
 - `--spotify-playlist-name` (required): The name for the new Spotify playlist
-- `--playlist-description` (optional): Description for the Spotify playlist (defaults to "Apple Music playlist converted to Spotify playlist! Automated with Python :)")
+- `--playlist-description` (optional): Description for the Spotify playlist
 
-### Example
+#### Example
 
 ```bash
-make run ARGS="--apple-playlist-url 'https://music.apple.com/us/playlist/...' --spotify-playlist-name 'My Favorite Songs' --playlist-description 'My favorite tracks from Apple Music'"
+make run-cli ARGS="--apple-playlist-url 'https://music.apple.com/us/playlist/...' --spotify-playlist-name 'My Favorite Songs'"
 ```
 
 ## Development
@@ -96,6 +131,23 @@ Additional make commands for development:
 - `make format` - Format code with Ruff
 - `make test` - Run test suite
 - `make clean` - Remove build artifacts and cache files
+- `make all` - Run install, lint, format, and test
+
+## Technology Stack
+
+### Backend
+- **FastAPI** - Modern Python web framework
+- **Spotipy** - Spotify Web API client
+- **Pydantic** - Data validation and settings management
+
+### Frontend
+- **Reflex** - Full-stack Python framework (compiles to React)
+- **Spotify OAuth 2.0** - Secure authentication
+
+### Tools
+- **uv** - Fast Python package manager
+- **Ruff** - Python linter and formatter
+- **Pytest** - Testing framework
 
 ## Dependencies
 

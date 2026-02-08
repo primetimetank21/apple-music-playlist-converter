@@ -11,9 +11,11 @@ BACKEND_ROOT: Final[Path] = Path(__file__).resolve().parents[1]  # "/src/backend
 class Settings(BaseSettings):
     CLIENT_ID: str = Field(default="", alias="CLIENT_ID")
     CLIENT_SECRET: str = Field(default="", alias="CLIENT_SECRET")
-    REDIRECT_URI: str = Field(default="", alias="REDIRECT_URL")
+    REDIRECT_URI: str = Field(default="", alias="REDIRECT_URI")
     LOG_LEVEL: int | str = Field(default=logging.INFO, alias="LOG_LEVEL")
     SCOPE: str | list[str] = Field(default="", alias="SCOPE")
+    BACKEND_URL: str = Field(default="http://localhost:8000", alias="BACKEND_URL")
+    FRONTEND_URL: str = Field(default="http://localhost:3000", alias="FRONTEND_URL")
 
     model_config = SettingsConfigDict(
         env_file=Path(BACKEND_ROOT, ".env"), env_file_encoding="utf-8"

@@ -39,5 +39,9 @@ run-cli:
 run-backend:
 	uv run uvicorn src.backend.app:app --reload --host 0.0.0.0 --port 8000
 
+.PHONY: run-frontend
+run-frontend:
+	cd src/frontend && uv run reflex run --backend-port 8080
+
 .PHONY: all
 all: install lint format test
