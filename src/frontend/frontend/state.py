@@ -1,9 +1,13 @@
 """State management for the Reflex frontend."""
 
+from typing import Final
+
 import httpx
 import reflex as rx
 
-BACKEND_URL: str = "http://localhost:8000"
+from .core import settings
+
+BACKEND_URL: Final[str] = settings.BACKEND_URL
 
 
 class PlaylistState(rx.State):
@@ -96,7 +100,6 @@ class PlaylistState(rx.State):
         self.is_loading = True
         self.status_message = "Redirecting to Spotify..."
 
-        # TODO: make backend URL configurable
         return rx.redirect(f"{BACKEND_URL}/login")
 
     @rx.event

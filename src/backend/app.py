@@ -11,17 +11,15 @@ from .core import models, settings
 from .helpers import create_spotify_playlist
 from .logger_lib import create_logger
 
+FRONTEND_URL: Final[str] = settings.FRONTEND_URL
+
 app = FastAPI()
 
 # Add CORS middleware to allow frontend communication
 app.add_middleware(
     CORSMiddleware,
-    # TODO: add ALLOWED_ORIGINS to settings, including one of FRONTEND_URL or FRONTEND_HOST + FRONTEND_PORT
     allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:8000",
-        "http://127.0.0.1:8000",
+        FRONTEND_URL,
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -33,7 +31,7 @@ TOKEN_URL: Final[str] = "https://accounts.spotify.com/api/token"
 
 @app.get("/login")
 async def login():
-    """Return the Spotify authorization URL."""
+    """Redirect user to Spotify authorization URL."""
     logger = create_logger(name=login.__name__)
     auth_url: str = (
         "https://accounts.spotify.com/authorize?"
@@ -44,10 +42,10 @@ async def login():
     return RedirectResponse(url=auth_url)
 
 
-# @app.get("/callback", response_model=models.TokenResponse)
 @app.get("/callback")
 async def callback(code: str = Query(None)):
-    """Swap the code for an Access Token and Refresh Token."""
+    # """Swap the code for an Access Token and Refresh Token."""
+    """Swap the code for an Access Token."""
     logger = create_logger(name=callback.__name__)
     logger.debug(f"Received code: {code}")
 
@@ -69,9 +67,8 @@ async def callback(code: str = Query(None)):
     token_data = models.TokenResponse(**token_response)
     logger.debug("Exchanged code for tokens")
 
-    # TODO: add FRONTEND_URL to settings
     response = RedirectResponse(
-        url=f"http://localhost:3000?access_token={token_data.access_token}"
+        url=f"{FRONTEND_URL}?access_token={token_data.access_token}"
     )  # Redirect to home after processing callback
     return response
 
@@ -80,6 +77,7 @@ async def callback(code: str = Query(None)):
 async def create_spotify_playlist_endpoint(
     background_tasks: BackgroundTasks, playlist_data: models.PlaylistCreateRequest
 ):
+    """Create a Spotify playlist from an Apple Music playlist."""
     logger = create_logger(name=create_spotify_playlist_endpoint.__name__)
     logger.debug(f"Received request to create playlist: {playlist_data.playlist_name}")
 
