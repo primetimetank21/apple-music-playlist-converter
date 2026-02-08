@@ -2,7 +2,9 @@ import logging
 from pathlib import Path
 from typing import Final, Optional
 
-from config import settings
+from ..core import settings
+
+BACKEND_ROOT: Final[Path] = Path(__file__).resolve().parents[1]
 
 LEVEL_COLOURS: Final[list[tuple[int, str]]] = [
     (logging.DEBUG, "\x1b[40;1m"),
@@ -81,7 +83,8 @@ def create_logger(
     logger.addHandler(handler)
 
     # Create logs directory if it doesn't exist
-    logs_dir = Path(Path(__file__).resolve().parents[2], "logs")
+    logs_dir = Path(BACKEND_ROOT, "logs")  # "/src/backend/logs"
+    print(f"Logs directory: {logs_dir.as_posix()}")
     logs_dir.mkdir(parents=True, exist_ok=True)
 
     # Create file formatter
