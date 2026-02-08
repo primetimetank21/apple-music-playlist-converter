@@ -84,7 +84,6 @@ def create_logger(
 
     # Create logs directory if it doesn't exist
     logs_dir = Path(BACKEND_ROOT, "logs")  # "/src/backend/logs"
-    print(f"Logs directory: {logs_dir.as_posix()}")
     logs_dir.mkdir(parents=True, exist_ok=True)
 
     # Create file formatter

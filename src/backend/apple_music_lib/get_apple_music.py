@@ -3,7 +3,6 @@ from typing import Final
 from urllib.parse import parse_qs, urlparse
 
 import httpx
-from logger_lib import create_logger
 from playwright.async_api import Browser, Page, async_playwright
 from tenacity import (
     retry,
@@ -11,6 +10,8 @@ from tenacity import (
     stop_after_attempt,
     wait_exponential,
 )
+
+from ..logger_lib import create_logger
 
 
 def get_bearer_auth_token(html: str) -> str:
