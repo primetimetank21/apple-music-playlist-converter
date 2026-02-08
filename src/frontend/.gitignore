@@ -1,0 +1,8 @@
+.web
+*.py[cod]
+assets/external/
+*.db
+.states
+__pycache__/
+
+!reflex.json
