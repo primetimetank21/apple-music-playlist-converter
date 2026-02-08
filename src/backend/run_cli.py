@@ -1,9 +1,8 @@
 import asyncio
 
 from apple_music_lib import get_apple_music_songs
-from config import settings
+from core import models, settings
 from helpers import create_cli_parser, create_spotify_playlist
-from models import CLIArgs, SpotifyCredentials
 
 # TODO: Add Pydantic for data validation
 # TODO: Add way to save songs that failed to be added
@@ -11,11 +10,11 @@ from models import CLIArgs, SpotifyCredentials
 
 async def async_main() -> None:
     parser = create_cli_parser()
-    args = CLIArgs(**parser.parse_args().__dict__)
+    args = models.CLIArgs(**parser.parse_args().__dict__)
 
     url: str = args.apple_playlist_url
     apple_song_list = await get_apple_music_songs(url=url)
-    spotify_creds: SpotifyCredentials = SpotifyCredentials(
+    spotify_creds = models.SpotifyCredentials(
         client_id=settings.CLIENT_ID,
         client_secret=settings.CLIENT_SECRET,
         redirect_uri=settings.REDIRECT_URI,

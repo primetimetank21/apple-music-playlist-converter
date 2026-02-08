@@ -31,9 +31,13 @@ clean:
 	@find . -type d -name .mypy_cache -exec rm -rf {} +
 	@find . -type d -name .ruff_cache -exec rm -rf {} +
 
-.PHONY: run
-run:
-	uv run src/main.py $(ARGS)
+.PHONY: run-cli
+run-cli:
+	uv run src/backend/run_cli.py $(ARGS)
+
+.PHONY: run-backend
+run-backend:
+	uv run uvicorn src.backend.app:app --reload --host 0.0.0.0 --port 8000
 
 .PHONY: all
 all: install lint format test

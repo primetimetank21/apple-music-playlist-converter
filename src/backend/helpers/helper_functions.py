@@ -1,13 +1,11 @@
-import json
 from time import sleep
 from typing import Any, Final, Optional
 
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
-from config import settings
-from logger_lib import create_logger
-from models import SpotifyCredentials
+from ..core import models, settings
+from ..logger_lib import create_logger
 
 type SpotifyUser = dict[str, str | Any] | Any
 WAIT_TIME: Final[int] = 5
@@ -136,21 +134,28 @@ def add_songs_to_playlist(
 
 
 def get_auth_and_current_user(
-    *, spotify_creds: SpotifyCredentials, scope: str | list[str]
+    *,
+    spotify_creds: models.SpotifyCredentials | models.SpotifyAccessToken,
+    scope: str | list[str],
 ) -> tuple[spotipy.Spotify, SpotifyUser]:
     """Create a Spotify API Client and get the current user info."""
     logger = create_logger(name=get_auth_and_current_user.__name__)
     logger.debug("Authenticating Spotify user")
 
     # Authenticate user
-    sp = spotipy.Spotify(
-        auth_manager=SpotifyOAuth(
-            client_id=spotify_creds.client_id,
-            client_secret=spotify_creds.client_secret,
-            redirect_uri=spotify_creds.redirect_uri,
-            scope=scope,
+    if isinstance(spotify_creds, models.SpotifyCredentials):
+        sp = spotipy.Spotify(
+            auth_manager=SpotifyOAuth(
+                client_id=spotify_creds.client_id,
+                client_secret=spotify_creds.client_secret,
+                redirect_uri=spotify_creds.redirect_uri,
+                scope=scope,
+            )
         )
-    )
+    elif isinstance(spotify_creds, models.SpotifyAccessToken):
+        sp = spotipy.Spotify(auth=spotify_creds.access_token)
+    else:
+        raise ValueError("Invalid spotify credentials")
 
     # Get current user info
     logger.debug("Getting current Spotify user")
@@ -163,7 +168,7 @@ def get_auth_and_current_user(
 def create_spotify_playlist(
     *,
     song_list: list[dict[str, str]],
-    spotify_creds: SpotifyCredentials,
+    spotify_creds: models.SpotifyCredentials | models.SpotifyAccessToken,
     playlist_name: str,
     scope: Optional[str | list[str]] = None,
     public: bool = False,
@@ -194,15 +199,3 @@ def create_spotify_playlist(
     add_songs_to_playlist(
         sp=sp, playlist_id=playlist_id, song_list=song_list, playlist_name=playlist_name
     )
-
-
-def read_json(*, filename: str) -> list[dict[str, str]]:
-    # Create logger
-    logger = create_logger(name=read_json.__name__)
-    logger.debug(f"Reading JSON file: {filename}")
-
-    # Read JSON file
-    with open(filename, "r") as f:
-        apple_song_list = json.load(f)
-
-    return apple_song_list
