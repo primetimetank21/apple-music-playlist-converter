@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -14,6 +16,20 @@ class CLIArgs(BaseModel):
 
 
 class TokenResponse(BaseModel):
-    access_token: str  # ACCESS_TOKEN: Used to make API calls (expires in 1hr)
-    refresh_token: str  # REFRESH_TOKEN: Used to get a new access token later
+    access_token: str  # used to make API calls (expires in 1hr)
+    refresh_token: str  # used to get a new access token later
     expires_in: int
+
+
+class SpotifyAccessToken(BaseModel):
+    access_token: str
+
+
+class PlaylistCreateRequest(BaseModel):
+    apple_playlist_url: str
+    playlist_name: str
+    access_token: str
+    public: Optional[bool] = False
+    description: Optional[str] = (
+        "Apple Music playlist converted to Spotify playlist! Automated with Python :)"
+    )

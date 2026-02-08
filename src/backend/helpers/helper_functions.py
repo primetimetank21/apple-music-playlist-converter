@@ -2,9 +2,10 @@ from time import sleep
 from typing import Any, Final, Optional
 
 import spotipy
-from core import models, settings
-from logger_lib import create_logger
 from spotipy.oauth2 import SpotifyOAuth
+
+from ..core import models, settings
+from ..logger_lib import create_logger
 
 type SpotifyUser = dict[str, str | Any] | Any
 WAIT_TIME: Final[int] = 5
@@ -133,22 +134,28 @@ def add_songs_to_playlist(
 
 
 def get_auth_and_current_user(
-    *, spotify_creds: models.SpotifyCredentials, scope: str | list[str]
+    *,
+    spotify_creds: models.SpotifyCredentials | models.SpotifyAccessToken,
+    scope: str | list[str],
 ) -> tuple[spotipy.Spotify, SpotifyUser]:
     """Create a Spotify API Client and get the current user info."""
     logger = create_logger(name=get_auth_and_current_user.__name__)
     logger.debug("Authenticating Spotify user")
 
     # Authenticate user
-    sp = spotipy.Spotify(
-        # TODO: replace auth_manager with auth and pass the access token directly
-        auth_manager=SpotifyOAuth(
-            client_id=spotify_creds.client_id,
-            client_secret=spotify_creds.client_secret,
-            redirect_uri=spotify_creds.redirect_uri,
-            scope=scope,
+    if isinstance(spotify_creds, models.SpotifyCredentials):
+        sp = spotipy.Spotify(
+            auth_manager=SpotifyOAuth(
+                client_id=spotify_creds.client_id,
+                client_secret=spotify_creds.client_secret,
+                redirect_uri=spotify_creds.redirect_uri,
+                scope=scope,
+            )
         )
-    )
+    elif isinstance(spotify_creds, models.SpotifyAccessToken):
+        sp = spotipy.Spotify(auth=spotify_creds.access_token)
+    else:
+        raise ValueError("Invalid spotify credentials")
 
     # Get current user info
     logger.debug("Getting current Spotify user")
@@ -158,11 +165,10 @@ def get_auth_and_current_user(
     return (sp, current_user)
 
 
-# TODO: Create a backend endpoint for this
 def create_spotify_playlist(
     *,
     song_list: list[dict[str, str]],
-    spotify_creds: models.SpotifyCredentials,
+    spotify_creds: models.SpotifyCredentials | models.SpotifyAccessToken,
     playlist_name: str,
     scope: Optional[str | list[str]] = None,
     public: bool = False,
